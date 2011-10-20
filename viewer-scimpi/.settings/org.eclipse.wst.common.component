@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="carserv-viewer-scimpi">
+        <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/carserv-dom/carserv-dom">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/carserv-fixture/carserv-fixture">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/carserv-objstore-dflt/carserv-objstore-dflt">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <property name="context-root" value="carserv-viewer-scimpi"/>
+        <property name="java-output-path" value="/carserv-viewer-scimpi/target/classes"/>
+    </wb-module>
+</project-modules>
