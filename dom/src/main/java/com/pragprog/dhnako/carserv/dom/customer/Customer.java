@@ -3,9 +3,9 @@
  */
 package com.pragprog.dhnako.carserv.dom.customer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.isis.applib.AbstractDomainObject;
 import org.apache.isis.applib.annotation.MaxLength;
@@ -14,6 +14,8 @@ import org.apache.isis.applib.annotation.DescribedAs;
 import org.apache.isis.applib.annotation.MultiLine;
 import org.apache.isis.applib.annotation.Optional;
 import org.apache.isis.applib.util.TitleBuffer;
+
+import com.pragprog.dhnako.carserv.dom.vehicle.Car;
 
 /**
  * @author <a href='mailto:limcheekin@vobject.com'>Lim Chee Kin</a>
@@ -30,37 +32,20 @@ public class Customer extends AbstractDomainObject {
 	}
 	
 	public String iconName() {
-		if ("Mr".equals(getTitle())) return "Man";
-		if ("Mrs".equals(getTitle())) return "Woman";
-		if ("Ms".equals(getTitle())) return "Woman";
-		if ("Miss".equals(getTitle())) return "Woman";
-		return null; // default
+	    return getTitle() != null? getTitle().getIconName(): null;
 	}
 	// }}
 	
 	// {{ Title
-	private String title;
-	private static final List<String> TITLES = Arrays.asList("Mr", "Mrs", "Ms", "Miss");
+	private Title title;
 
 	@MemberOrder(sequence = "1.1")
-	public String getTitle() {
+	public Title getTitle() {
 		return title;
 	}
 
-	public void setTitle(String title) {
+	public void setTitle(Title title) {
 		this.title = title;
-	}
-
-	public List<String> choicesTitle() {
-		return TITLES;
-	}
-
-	public String validateTitle(String title) {
-		if (title == null) return null;
-		if (!TITLES.contains(title)) {
-			return "Title must be one of " + TITLES;
-		}
-		return null;
 	}
 	// }}
 	
@@ -108,7 +93,54 @@ public class Customer extends AbstractDomainObject {
 		this.notes = notes;
 	}
 	// }}
+	
+	private List<Car> cars = new ArrayList<Car>();
+	@MemberOrder(sequence = "1.5")
+	public List<Car> getCars() {
+	    return cars;
+	}
+	public void setCars(final List<Car> cars) {
+	    this.cars = cars;
+	}		
+	
+	public void addToCars(final Car car) {
+	    // check for no-op
+	    if (car == null || getCars().contains(car)) {
+	        return;
+	    }
+	    // dissociate arg from its current parent (if any).
+	    car.clearOwningCustomer();
+	    // associate arg
+	    car.setOwningCustomer(this);
+	    getCars().add(car);
+	    // additional business logic
+	    onAddToCars(car);
+	}
+	public void removeFromCars(
+	        final Car car) {
+	    // check for no-op
+	    if (car == null || !getCars().contains(car)) {
+	        return;
+	    }
+	    // dissociate arg
+	    car.setOwningCustomer(null);
+	    // dissociate existing
+	    getCars().remove(car);
+	    // additional business logic
+	    onRemoveFromCars(car);
+	}
+	protected void onAddToCars(final Car car) {
+	}
+	protected void onRemoveFromCars(final Car car) {
+	}	
+	
+	public String validateAddToCars(final Car car) {
+		return getCars().size() >= 3?
+				"No more than 3 cars per customer": null;
+	}
 
-
+	public String validateRemoveFromCars(final Car car) {
+		return null;
+	}		
 
 }
