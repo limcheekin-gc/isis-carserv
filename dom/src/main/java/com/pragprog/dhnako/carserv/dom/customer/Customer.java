@@ -3,8 +3,8 @@
  */
 package com.pragprog.dhnako.carserv.dom.customer;
 
+import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.isis.applib.AbstractDomainObject;
@@ -13,6 +13,7 @@ import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.DescribedAs;
 import org.apache.isis.applib.annotation.MultiLine;
 import org.apache.isis.applib.annotation.Optional;
+import org.apache.isis.applib.clock.Clock;
 import org.apache.isis.applib.util.TitleBuffer;
 
 import com.pragprog.dhnako.carserv.dom.vehicle.Car;
@@ -92,7 +93,55 @@ public class Customer extends AbstractDomainObject {
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}
+	
+	public void modifyNotes(final String notes) {
+		String currentNotes = getNotes();
+		// check for no-op
+		if (notes == null || notes.equals(currentNotes)) {
+			return;
+		}
+		// associate new
+		setNotes(notes);
+		// additional business logic
+		onModifyNotes(currentNotes, notes);
+	}
+
+	public void clearNotes() {
+		String currentNotes = getNotes();
+		// check for no-op
+		if (currentNotes == null) {
+			return;
+		}
+		// dissociate existing
+		setNotes(null);
+		// additional business logic
+		onClearNotes(currentNotes);
+	}
+
+	protected void onModifyNotes(final String oldNotes, final String newNotes) {
+		setNotedBy(getUser().getName());
+	}
+
+	protected void onClearNotes(final String oldNotes) {
+	}
 	// }}
+
+	
+	// {{ NotedBy
+	private String notedBy;
+
+	@MemberOrder(sequence = "1.5.5")
+	@Optional
+	@MaxLength(16)
+	public String getNotedBy() {
+		return notedBy;
+	}
+
+	public void setNotedBy(final String notedBy) {
+		this.notedBy = notedBy;
+	}
+	// }}
+
 	
 	private List<Car> cars = new ArrayList<Car>();
 	@MemberOrder(sequence = "1.5")
@@ -143,4 +192,21 @@ public class Customer extends AbstractDomainObject {
 		return null;
 	}		
 
+	// {{ Since
+	private Date since;
+
+	@MemberOrder(sequence = "1.6")
+	public Date getSince() {
+		return since;
+	}
+
+	public void setSince(final Date since) {
+		this.since = since;
+	}
+	
+	public Date defaultSince() {
+		return new java.sql.Date(Clock.getTime());
+	}
+	// }}	
 }
+

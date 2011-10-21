@@ -6,8 +6,10 @@ package com.pragprog.dhnako.carserv.dom.customer;
 import java.util.List;
 
 import org.apache.isis.applib.AbstractFactoryAndRepository;
+import org.apache.isis.applib.annotation.Debug;
 import org.apache.isis.applib.annotation.Exploration;
 import org.apache.isis.applib.annotation.Named;
+import org.apache.isis.applib.security.UserMemento;
 
 /**
  * @author <a href='mailto:limcheekin@vobject.com'>Lim Chee Kin</a>
@@ -34,4 +36,11 @@ public class CustomerRepository extends AbstractFactoryAndRepository {
 	    return "Customer";
 	}
 	// }}		
+	
+	// {{ currentUser
+	@Debug
+	public UserMemento currentUser() {
+		return getUser();
+	}
+	// }}	
 }
