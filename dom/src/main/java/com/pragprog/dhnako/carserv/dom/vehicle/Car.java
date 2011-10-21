@@ -11,6 +11,7 @@ import org.apache.isis.applib.AbstractDomainObject;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.MaxLength;
 import org.apache.isis.applib.annotation.Optional;
+import org.apache.isis.applib.annotation.RegEx;
 import org.apache.isis.applib.util.TitleBuffer;
 
 import com.pragprog.dhnako.carserv.dom.customer.Customer;
@@ -34,6 +35,7 @@ public class Car extends AbstractDomainObject {
 	
 	@MemberOrder(sequence = "1.1")
 	@MaxLength(12)
+	@RegEx(validation="[A-Z0-9]+")
 	public String getRegistrationNumber() {
 		return registrationNumber;
 	}
@@ -173,4 +175,11 @@ public class Car extends AbstractDomainObject {
 		this.model = model;
 	}
 	// }}	
+	
+	@MemberOrder(sequence="1.1")
+	public void delete() {
+	    clearOwningCustomer();
+	    remove(this);
+	}	
+		
 }

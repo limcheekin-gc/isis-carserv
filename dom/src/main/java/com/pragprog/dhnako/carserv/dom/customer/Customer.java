@@ -12,11 +12,14 @@ import org.apache.isis.applib.annotation.MaxLength;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.DescribedAs;
 import org.apache.isis.applib.annotation.MultiLine;
+import org.apache.isis.applib.annotation.Named;
 import org.apache.isis.applib.annotation.Optional;
+import org.apache.isis.applib.annotation.RegEx;
 import org.apache.isis.applib.clock.Clock;
 import org.apache.isis.applib.util.TitleBuffer;
 
 import com.pragprog.dhnako.carserv.dom.vehicle.Car;
+import com.pragprog.dhnako.carserv.dom.vehicle.Model;
 
 /**
  * @author <a href='mailto:limcheekin@vobject.com'>Lim Chee Kin</a>
@@ -36,6 +39,7 @@ public class Customer extends AbstractDomainObject {
 	    return getTitle() != null? getTitle().getIconName(): null;
 	}
 	// }}
+	
 	
 	// {{ Title
 	private Title title;
@@ -208,5 +212,38 @@ public class Customer extends AbstractDomainObject {
 		return new java.sql.Date(Clock.getTime());
 	}
 	// }}	
+	
+	// {{ newCar
+	@MemberOrder(sequence = "1.1")
+	public Car newCar(
+			final Model model,
+			@RegEx(validation="[A-Z0-9]+")
+			@Named("Registration Number")
+			final String registrationNumber) {
+	    Car car = newTransientInstance(Car.class);
+	    car.setModel(model);
+	    car.setRegistrationNumber(registrationNumber);
+	    car.modifyOwningCustomer(this);
+	    getContainer().persist(car);
+		return car;
+	}
+	// }}
+	
+	// {{ deleteCar
+	@MemberOrder(sequence = "1.2")
+	public void deleteCar(final Car car) {
+	    car.delete();
+	}
+	public String validateDeleteCar(final Car car) {
+	    return getCars().contains(car) ?
+	        null :"Customer does not own this car";
+	}	
+	public List<Car> choices0DeleteCar() {
+		return getCars();
+	}
+	public Car default0DeleteCar() {
+		return getCars().size() == 1? getCars().get(0): null;
+	}
+	// }}
 }
 
