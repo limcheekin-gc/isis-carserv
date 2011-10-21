@@ -8,18 +8,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.isis.applib.AbstractDomainObject;
+import org.apache.isis.applib.annotation.Disabled;
 import org.apache.isis.applib.annotation.MaxLength;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.DescribedAs;
 import org.apache.isis.applib.annotation.MultiLine;
-import org.apache.isis.applib.annotation.Named;
 import org.apache.isis.applib.annotation.Optional;
-import org.apache.isis.applib.annotation.RegEx;
+import org.apache.isis.applib.annotation.When;
 import org.apache.isis.applib.clock.Clock;
 import org.apache.isis.applib.util.TitleBuffer;
 
 import com.pragprog.dhnako.carserv.dom.vehicle.Car;
-import com.pragprog.dhnako.carserv.dom.vehicle.Model;
+
 
 /**
  * @author <a href='mailto:limcheekin@vobject.com'>Lim Chee Kin</a>
@@ -128,8 +128,15 @@ public class Customer extends AbstractDomainObject {
 
 	protected void onClearNotes(final String oldNotes) {
 	}
+	
+	public String disableNotes() {
+	    return doesntOwnAnyCars()?"Can only add notes for customers with cars":null;
+	}	
 	// }}
 
+	private boolean doesntOwnAnyCars() {
+		  return getCars().size() == 0;
+	}
 	
 	// {{ NotedBy
 	private String notedBy;
@@ -145,8 +152,8 @@ public class Customer extends AbstractDomainObject {
 		this.notedBy = notedBy;
 	}
 	// }}
-
 	
+	// {{ Cars
 	private List<Car> cars = new ArrayList<Car>();
 	@MemberOrder(sequence = "1.5")
 	public List<Car> getCars() {
@@ -195,11 +202,35 @@ public class Customer extends AbstractDomainObject {
 	public String validateRemoveFromCars(final Car car) {
 		return null;
 	}		
+   // }}
+	
+	// {{ Feedback
+	private String feedback;
 
+	@MemberOrder(sequence = "1.6")
+	@MultiLine(numberOfLines=5, preventWrapping=false)
+	@Optional
+	public String getFeedback() {
+		return feedback;
+	}
+
+	public void setFeedback(final String feedback) {
+		this.feedback = feedback;
+	}
+
+	public boolean hideFeedback() {
+		return !isValuableCustomer();
+	}
+	// }}
+	
+	private boolean isValuableCustomer() {
+	    return getCars().size() >= 2;
+	}
+	
 	// {{ Since
 	private Date since;
 
-	@MemberOrder(sequence = "1.6")
+	@MemberOrder(sequence = "1.7")
 	public Date getSince() {
 		return since;
 	}
@@ -215,22 +246,17 @@ public class Customer extends AbstractDomainObject {
 	
 	// {{ newCar
 	@MemberOrder(sequence = "1.1")
-	public Car newCar(
-			final Model model,
-			@RegEx(validation="[A-Z0-9]+")
-			@Named("Registration Number")
-			final String registrationNumber) {
-	    Car car = newTransientInstance(Car.class);
-	    car.setModel(model);
-	    car.setRegistrationNumber(registrationNumber);
-	    car.modifyOwningCustomer(this);
-	    getContainer().persist(car);
+	@Disabled(When.UNTIL_PERSISTED)
+	public Car newCar() {
+		Car car = newTransientInstance(Car.class);
+		car.setOwningCustomer(this);
 		return car;
 	}
 	// }}
-	
+
 	// {{ deleteCar
 	@MemberOrder(sequence = "1.2")
+	@Disabled(When.UNTIL_PERSISTED)
 	public void deleteCar(final Car car) {
 	    car.delete();
 	}
@@ -244,6 +270,19 @@ public class Customer extends AbstractDomainObject {
 	public Car default0DeleteCar() {
 		return getCars().size() == 1? getCars().get(0): null;
 	}
+	public String disableDeleteCar() {
+	    return doesntOwnAnyCars()? "No cars to delete": null;
+	}	
 	// }}
+
+	boolean matches(final String firstName, final String lastName) {
+		return nullSafeEquals(getFirstName(), firstName)
+				&& nullSafeEquals(getLastName(), lastName);
+	}
+
+	private <T> boolean nullSafeEquals(final T s1, final T s2) {
+		return s1 == null || s2 == null || s1 != null && s2 != null
+				&& s1.equals(s2);
+	}
 }
 

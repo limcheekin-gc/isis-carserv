@@ -52,10 +52,11 @@ public class CustomerRepository extends AbstractFactoryAndRepository {
 			@Optional @Named("Last Name") final String lastName) {
 		return allMatches(Customer.class, new Filter<Customer>() {
 			public boolean accept(final Customer customer) {
-				return matches(customer, firstName, lastName);
+				return customer.matches(firstName, lastName);
 			}
 		});
 	}
+	
 	public String validateFindByName(
 	        final String lastName, final String firstName) {
 	    if (lastName == null && firstName == null) {
@@ -63,15 +64,6 @@ public class CustomerRepository extends AbstractFactoryAndRepository {
 	    }
 	    return null;
 	}
-	private static boolean matches(
-	       final Customer customer, 
-	       final String firstName, final String lastName) {
-	    return nullSafeEquals(customer.getFirstName(), firstName) &&
-	           nullSafeEquals(customer.getLastName(), lastName);
-	}
-	private static <T> boolean nullSafeEquals(final T s1, final T s2) {
-	    return s1 == null || s2 == null ||
-	           s1 != null && s2 != null && s1.equals(s2);
-	}
+
   // }}	
 }

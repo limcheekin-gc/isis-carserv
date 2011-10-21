@@ -5,13 +5,14 @@ package com.pragprog.dhnako.carserv.dom.vehicle;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.isis.applib.AbstractDomainObject;
+import org.apache.isis.applib.annotation.Disabled;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.MaxLength;
 import org.apache.isis.applib.annotation.Optional;
 import org.apache.isis.applib.annotation.RegEx;
+import org.apache.isis.applib.annotation.When;
 import org.apache.isis.applib.util.TitleBuffer;
 
 import com.pragprog.dhnako.carserv.dom.customer.Customer;
@@ -36,24 +37,14 @@ public class Car extends AbstractDomainObject {
 	@MemberOrder(sequence = "1.1")
 	@MaxLength(12)
 	@RegEx(validation="[A-Z0-9]+")
+	// TODO: Error @MustSatisfy(RegistrationNumberSpecification.class)
+	@Disabled(When.ONCE_PERSISTED)
 	public String getRegistrationNumber() {
 		return registrationNumber;
 	}
 
 	public void setRegistrationNumber(String registrationNumber) {
 		this.registrationNumber = registrationNumber;
-	}
-	
-	public String validateRegistrationNumber(String registrationNumber) {
-	    if (registrationNumber == null) return null;
-	    String country = Locale.getDefault().getCountry();
-	    int length = registrationNumber.length();
-	    if ( ("US".equals(country) && length > 7) ||
-	         ("GB".equals(country) && length > 7 ) ||
-	         length > 12) { // everywhere else
-	        return "Registration number is too long";
-	    }
-	    return null;
 	}
 	// }}
 	
@@ -62,6 +53,7 @@ public class Car extends AbstractDomainObject {
 
 	@Optional
 	@MemberOrder(sequence = "1.2")
+	@Disabled
 	public Customer getOwningCustomer() {
 		return owningCustomer;
 	}
@@ -118,6 +110,7 @@ public class Car extends AbstractDomainObject {
 	private List<Service> services = new ArrayList<Service>();
 
 	@MemberOrder(sequence = "1.4")
+	@Disabled
 	public List<Service> getServices() {
 		return services;
 	}
@@ -167,6 +160,7 @@ public class Car extends AbstractDomainObject {
 	private Model model;
 
 	@MemberOrder(sequence = "1.3")
+	@Disabled(When.ONCE_PERSISTED)
 	public Model getModel() {
 		return model;
 	}
@@ -176,10 +170,21 @@ public class Car extends AbstractDomainObject {
 	}
 	// }}	
 	
-	@MemberOrder(sequence="1.1")
+	@MemberOrder(sequence="1.2")
+	@Disabled(When.UNTIL_PERSISTED)
 	public void delete() {
 	    clearOwningCustomer();
 	    remove(this);
 	}	
 		
+	public void persisting() {
+	    getOwningCustomer().addToCars(this);
+	}	
+	
+	@MemberOrder(sequence="1.1")
+	public Service bookService( ) {
+	    Service service = newTransientInstance(Service.class);
+	    service.setCar(this);
+	    return service;
+	}	
 }

@@ -12,6 +12,7 @@ import java.sql.Date;
 
 import org.apache.isis.applib.AbstractDomainObject;
 import org.apache.isis.applib.annotation.MemberOrder;
+import org.apache.isis.applib.clock.Clock;
 import org.apache.isis.applib.util.TitleBuffer;
 
 import com.pragprog.dhnako.carserv.dom.vehicle.Car;
@@ -42,6 +43,10 @@ public class Service extends AbstractDomainObject {
 	public void setBookedIn(final Date bookedIn) {
 		this.bookedIn = bookedIn;
 	}
+	
+	public Date defaultBookedIn() {
+	    return todayPlus(1);
+	}	
 	// }}
 	
 	
@@ -56,6 +61,10 @@ public class Service extends AbstractDomainObject {
 	public void setEstimatedReady(final Date estimatedReady) {
 		this.estimatedReady = estimatedReady;
 	}
+	
+	public Date defaultEstimatedReady() {
+	    return todayPlus(1);
+	}	
 	// }}
 
 
@@ -102,7 +111,24 @@ public class Service extends AbstractDomainObject {
 	}
 	// }}
 
-
+	public void persisting() {
+	    getCar().addToServices(this);
+	}
+	
+	public String validate() {
+	    return getEstimatedReady() != null &&
+	           getBookedIn()       != null &&
+	           getEstimatedReady().getTime() < getBookedIn().getTime() ?
+	           "The 'estimated ready' date cannot be before "+
+	           "the 'booked in' date"
+	           :null;
+	}
+	
+	private static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+	private Date todayPlus(final int days) {
+	    Date midnight = new Date(Clock.getTime());
+	    return new Date(midnight.getTime() + MILLIS_PER_DAY * days); 
+	}	
 
 
 }
