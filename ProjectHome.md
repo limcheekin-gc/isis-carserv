@@ -1,0 +1,1 @@
+This project is porting of CarServ to Isis which is the case study of the Naked Objects book: [Domain-Driven Design Using Naked Objects](http://pragprog.com/book/dhnako/domain-driven-design-using-naked-objects).
